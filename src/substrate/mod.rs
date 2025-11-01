@@ -10,9 +10,9 @@ use bevy::tasks::IoTaskPool;
 use tokio::sync::oneshot;
 use tracing::{debug, error, info, warn};
 use wgpu::{
-    Backends, Device, HeadlessSurfaceDescriptor, Instance, InstanceDescriptor, PowerPreference,
-    PresentMode, Queue, RequestAdapterOptions, Surface, SurfaceConfiguration, SurfaceTarget,
-    TextureFormat, TextureUsages,
+    Backends, Device, Instance, InstanceDescriptor, InstanceFlags, PowerPreference,
+    Queue, RequestAdapterOptions, Surface,
+    TextureFormat,
 };
 
 /// Structure représentant le contexte GPU global du Void Engine.
@@ -54,8 +54,8 @@ impl GpuContext {
         info!(target: "substrate", "starting GPU initialization");
 
         let instance = Instance::new(&InstanceDescriptor {
+            flags: InstanceFlags::default(),
             backends: Backends::all(),
-            dx12_shader_compiler: Default::default(),
             ..Default::default()
         });
 
@@ -66,26 +66,18 @@ impl GpuContext {
                 compatible_surface: None,
             })
             .await
-            .ok_or(GpuInitError::NoAdapter)?;
+            .map_err(|_| GpuInitError::NoAdapter)?;
 
         let adapter_info = adapter.get_info();
         let (device, queue) = adapter
-            .request_device(&wgpu::DeviceDescriptor::default(), None)
+            .request_device(&wgpu::DeviceDescriptor::default())
             .await?;
 
-        let surface = instance
-            .create_surface(SurfaceTarget::Headless(HeadlessSurfaceDescriptor {
-                width: 4,
-                height: 4,
-            }))
-            .ok();
+        let surface: Option<Arc<Surface<'static>>> = None;
 
-        let surface_format = surface
-            .as_ref()
-            .and_then(|surface| surface.get_capabilities(&adapter).formats.first().copied());
+        let surface_format = None;
 
-        if let (Some(surface), Some(format)) = (surface.as_ref(), surface_format) {
-            configure_surface(surface, &device, format);
+        if surface.is_some() && surface_format.is_some() {
             debug!(target: "substrate", "headless surface configured");
         } else {
             warn!(target: "substrate", "headless surface unavailable; continuing without surface");
@@ -98,24 +90,14 @@ impl GpuContext {
             device: Arc::new(device),
             queue: Arc::new(queue),
             surface_format,
-            surface: surface.map(Arc::new),
+            surface,
         })
     }
 }
 
-fn configure_surface(surface: &Surface<'static>, device: &Device, format: TextureFormat) {
-    let config = SurfaceConfiguration {
-        usage: TextureUsages::RENDER_ATTACHMENT,
-        format,
-        width: 4,
-        height: 4,
-        present_mode: PresentMode::Fifo,
-        alpha_mode: wgpu::CompositeAlphaMode::Opaque,
-        view_formats: vec![],
-        desired_maximum_frame_latency: 2,
-    };
-
-    surface.configure(device, &config);
+#[allow(dead_code)]
+fn configure_surface(_surface: &Surface<'static>, _device: &Device, _format: TextureFormat) {
+    // No longer used due to removed surface creation
 }
 
 #[derive(Resource)]
@@ -127,28 +109,29 @@ fn start_gpu_initialization(mut commands: Commands) {
     IoTaskPool::get().spawn(async move {
         let result = GpuContext::initialize().await;
         let _ = sender.send(result);
-    });
+    }).detach();
 
     commands.insert_resource(PendingGpuInit(receiver));
     info!(target: "substrate", "spawned asynchronous GPU task");
 }
 
-fn poll_gpu_initialization(mut commands: Commands, mut pending: Option<ResMut<PendingGpuInit>>) {
+fn poll_gpu_initialization(mut commands: Commands, pending: Option<ResMut<PendingGpuInit>>) {
     let Some(mut pending) = pending else {
         return;
     };
 
     match pending.0.try_recv() {
-        Ok(Some(Ok(context))) => {
-            info!(target: "substrate", adapter = %context.adapter_name, "GPU context ready");
-            commands.insert_resource(context);
-            commands.remove_resource::<PendingGpuInit>();
-        }
-        Ok(Some(Err(err))) => {
-            error!(target: "substrate", ?err, "failed to initialize GPU context");
-            commands.remove_resource::<PendingGpuInit>();
-        }
-        Ok(None) => {}
+        Ok(result) => match result {
+            Ok(context) => {
+                info!(target: "substrate", adapter = %context.adapter_name, "GPU context ready");
+                commands.insert_resource(context);
+                commands.remove_resource::<PendingGpuInit>();
+            }
+            Err(err) => {
+                error!(target: "substrate", ?err, "failed to initialize GPU context");
+                commands.remove_resource::<PendingGpuInit>();
+            }
+        },
         Err(err) => {
             error!(target: "substrate", ?err, "GPU initialization channel closed unexpectedly");
             commands.remove_resource::<PendingGpuInit>();

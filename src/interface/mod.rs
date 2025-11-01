@@ -19,6 +19,7 @@
 
 use crate::core::MemoryField;
 use bevy::prelude::*;
+use bevy::sprite::Sprite;
 use bevy::reflect::Reflect;
 use tracing::{debug, info};
 
@@ -119,18 +120,22 @@ fn sync_links(mut link: ResMut<InterfaceLink>) {
 }
 
 fn setup_visualization(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
-
+    // Spawn a 2D camera (no bundle in Bevy 0.17)
     commands.spawn((
-        SpriteBundle {
-            sprite: Sprite {
-                color: Color::rgb(0.2, 0.2, 0.8),
-                custom_size: Some(Vec2::splat(220.0)),
-                ..Default::default()
-            },
-            transform: Transform::from_xyz(0.0, 0.0, 0.0),
+        Camera2d,
+        Camera { order: 0, ..default() },
+        Transform::from_xyz(0.0, 0.0, 999.9),
+        GlobalTransform::default(),
+    ));
+
+    // Spawn a simple sprite (no bundle)
+    commands.spawn((
+        Sprite {
+            color: Color::srgb(0.2, 0.2, 0.8),
+            custom_size: Some(Vec2::splat(220.0)),
             ..Default::default()
         },
+        Transform::from_xyz(0.0, 0.0, 0.0),
         InterfaceDiagnostic,
     ));
 }
@@ -139,12 +144,12 @@ fn update_visualization(
     memory: Res<MemoryField>,
     mut query: Query<&mut Sprite, With<InterfaceDiagnostic>>,
 ) {
-    if let Ok(mut sprite) = query.get_single_mut() {
+    if let Ok(mut sprite) = query.single_mut() {
         let coherence = memory.average("coherence", 60).unwrap_or(0.5);
         let entropy = memory.average("entropy", 60).unwrap_or(0.5);
         let intensity = (1.0 - entropy).clamp(0.0, 1.0);
 
-        sprite.color = Color::rgb(
+        sprite.color = Color::srgb(
             coherence.clamp(0.0, 1.0),
             intensity,
             (1.0 - coherence).clamp(0.0, 1.0),

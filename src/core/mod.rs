@@ -55,7 +55,9 @@ pub fn init(app: &mut App) {
     info!(target: "core", "Initialisation du noyau Void Engine");
 
     app.insert_resource(Engine::new())
-        .insert_resource(MemoryField::new(10))
+        .insert_resource(MemoryField::new(std::env::var("VOID_MEMORY_CAPACITY").ok()
+            .and_then(|v| v.parse::<usize>().ok())
+            .unwrap_or(10)))
         .add_systems(Startup, run_engine);
 
     info!(target: "core", "Noyau enregistré et prêt à fonctionner");
