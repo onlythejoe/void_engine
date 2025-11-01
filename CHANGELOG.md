@@ -5,6 +5,17 @@ This project adheres to Semantic Versioning (https://semver.org/).
 
 ---
 
+# [v0.2.1] — 2025-11-01
+### 🧠 Summary
+Unified MemoryField into a single rotating, JSON-driven buffer with retention, analytics helpers, and updated reflection/manifold writers to feed coherent snapshots into persistent storage.
+Finalized GPU substrate boot by producing a fully initialized GpuContext resource and added an interface visualization sprite that reflects live coherence/entropy readings from shared memory.
+Replaced the bespoke structure transform with Bevy’s component while migrating the engine to tracing-based diagnostics, including an optional verbose feature and runtime subscriber wiring in main.rs.
+Made the functional feedback loop adaptive by deriving decay and phase rates from recent MemoryField coherence and entropy trends, stabilizing loop behaviour based on historical analytics.
+
+### 🧪 Testing
+⚠️ cargo check (fails: missing system library wayland-client required by wayland-sys)
+⚠️ cargo run (fails: missing system library wayland-client required by wayland-sys)
+
 ## [v0.2.0] — 2025-11-01
 ### ✨ Added
 - Implemented `MemoryField` system for circular memory management.

@@ -1,7 +1,7 @@
 //! # Void Engine
 //!
 //! Moteur expérimental modulaire basé sur **Bevy + WGPU**
-//! 
+//!
 //! ## Architecture des couches :
 //! - **Core** — fondations primitives (types, temps, mémoire, logique fondamentale)
 //! - **Substrate** — plan matériel et énergétique (base d’existence)
@@ -17,15 +17,16 @@
 
 use bevy::prelude::*;
 use bevy::tasks::{IoTaskPool, TaskPool};
+use tracing::{debug, info};
 
 pub mod core;
-pub mod substrate;
 pub mod dynamics;
-pub mod structure;
 pub mod function;
-pub mod reflection;
 pub mod interface;
 pub mod manifold;
+pub mod reflection;
+pub mod structure;
+pub mod substrate;
 
 /// Structure centrale du moteur — point d’entrée de tout le système.
 pub struct VoidEngine;
@@ -40,7 +41,7 @@ impl VoidEngine {
     pub fn init() -> App {
         // ⚡ Initialisation explicite du pool de tâches Bevy
         IoTaskPool::get_or_init(|| TaskPool::new());
-        println!("🚀 [void_engine] Initialisation du moteur Void...");
+        info!(target: "void_engine", "Initialisation du moteur Void");
         let mut app = App::new();
 
         // 🧱 Phase 1 : couches fondamentales
@@ -59,13 +60,19 @@ impl VoidEngine {
 
         app.insert_resource(core::MemoryField::new(512)); // mémoire circulaire de 512 trames
 
-        println!("✅ [void_engine] Toutes les couches du moteur sont opérationnelles !");
+        info!(
+            target: "void_engine",
+            "Toutes les couches du moteur sont opérationnelles"
+        );
         app
     }
 
     /// Fonction de debug globale
     pub fn debug() {
-        println!("🧠 [void_engine] État général du moteur : synchronisé, stable, conscient.");
+        debug!(
+            target: "void_engine",
+            "État général du moteur : synchronisé, stable, conscient"
+        );
         reflection::debug_info();
         interface::debug_info();
         manifold::debug_info();

@@ -10,10 +10,12 @@
 // Sa mission : maintenir la **cohérence spatio-temporelle et ontologique** du Void Engine,
 // en orchestrant les échanges entre ces couches via un champ global : le **VoidField**.
 
+use crate::core::MemoryField;
+use crate::{interface::*, reflection::*};
 use bevy::prelude::*;
 use bevy::time::TimePlugin;
-use crate::{reflection::*, interface::*};
-use crate::core::MemoryField;
+use serde_json::json;
+use tracing::{debug, info, warn};
 
 /// Représente le champ unifié du Void — convergence de toutes les sous-couches.
 #[derive(Resource, Default, Debug, Reflect)]
@@ -39,16 +41,20 @@ fn unify_field(
     field.entropy = 1.0 - field.coherence;
     field.active_layers = 6;
 
-    memory.record(
-        field.coherence,
-        field.entropy,
-        field.energy_flow,
-    );
+    memory.record(json!({
+        "module": "manifold",
+        "coherence": field.coherence,
+        "entropy": field.entropy,
+        "energy": field.energy_flow,
+    }));
 
     // Monitoring unified field state
-    println!(
-        "🌌 [manifold] champ unifié → énergie {:.3} | cohérence {:.3} | entropie {:.3}",
-        field.energy_flow, field.coherence, field.entropy
+    debug!(
+        target: "manifold",
+        energy = field.energy_flow,
+        coherence = field.coherence,
+        entropy = field.entropy,
+        "champ unifié"
     );
 }
 
@@ -59,10 +65,17 @@ fn pulse(mut field: ResMut<VoidField>, time: Option<Res<Time>>) {
         let wave = (time.elapsed_secs().sin() * 0.5 + 0.5) * field.coherence;
         field.energy_flow = (field.energy_flow * 0.9 + wave * 0.1).clamp(0.0, 1.0);
         // Log the pulse effect on energy flow for dynamic monitoring.
-        println!("💫 [manifold] pulsation → flux {:.3}", field.energy_flow);
+        debug!(
+            target: "manifold",
+            flux = field.energy_flow,
+            "pulsation du champ"
+        );
     } else {
         // Indicate that the Time resource is not yet available for pulse calculation.
-        println!("⏳ [manifold] Time resource not yet available, skipping pulse.");
+        warn!(
+            target: "manifold",
+            "Time resource not yet available, skipping pulse"
+        );
     }
 }
 
@@ -70,7 +83,7 @@ fn pulse(mut field: ResMut<VoidField>, time: Option<Res<Time>>) {
 pub fn init(app: &mut App) {
     // Configure et lance le module manifold avec ses systèmes et ressources.
     // Signal the start of the manifold initialization process.
-    println!("🔧 [manifold] Initialisation du champ global du Void...");
+    info!(target: "manifold", "Initialisation du champ global du Void");
 
     app.add_plugins(TimePlugin);
 
@@ -79,14 +92,20 @@ pub fn init(app: &mut App) {
         .add_systems(Update, (unify_field, pulse));
 
     // Confirm that the unified field system is operational.
-    println!("✅ [manifold] Champ unifié opérationnel, Void Engine cohérent.");
+    info!(target: "manifold", "Champ unifié opérationnel, Void Engine cohérent");
     // Summary log indicating the module is ready and stabilized.
-    println!("🧠 [manifold] module prêt — cohérence universelle stabilisée.");
+    debug!(
+        target: "manifold",
+        "module prêt — cohérence universelle stabilisée"
+    );
 }
 
 /// Fonction de debug — affiche l’état global du champ du Void.
 pub fn debug_info() {
     // Affiche des informations de débogage sur la cohérence et le champ d’unification.
     // Inform that the debug state of the unified field is active.
-    println!("🌀 [manifold] Cohérence et champ d’unification actifs...");
+    debug!(
+        target: "manifold",
+        "Cohérence et champ d’unification actifs"
+    );
 }

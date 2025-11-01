@@ -8,9 +8,11 @@
 //! Elle agit comme un **métasystème** capable de percevoir et d’ajuster les dynamiques internes
 //! à travers un mécanisme d’observation intégrée, sans intervention externe.
 
-use bevy::prelude::*;
-use std::f32::consts::PI;
 use crate::core::MemoryField;
+use bevy::prelude::*;
+use serde_json::json;
+use std::f32::consts::PI;
+use tracing::{debug, info};
 
 /// Représente une "perception" interne du système — une observation locale d’un état.
 /// Chaque entité `Perception` agit comme un capteur introspectif du moteur.
@@ -55,10 +57,12 @@ fn perceive(query: Query<&Perception>, mut field: ResMut<ReflectionField>, time:
     // Niveau récursif basé sur le temps écoulé, cyclique modulo 42
     field.recursive_level = ((time.elapsed_secs() * PI) as u32) % 42;
 
-    // Debug log: état actuel de la perception interne
-    println!(
-        "🪞 [reflection] perception interne → cohérence={:.3}, profondeur={:.3}, niveau={}",
-        field.coherence, field.depth, field.recursive_level
+    debug!(
+        target: "reflection",
+        coherence = field.coherence,
+        depth = field.depth,
+        level = field.recursive_level,
+        "perception interne"
     );
 }
 
@@ -68,17 +72,18 @@ fn integrate(mut field: ResMut<ReflectionField>, mut memory: ResMut<MemoryField>
     // Intègre et stabilise la cohérence du champ réflexif en pondérant l'ancienne valeur et une fonction de la profondeur
     field.coherence = 0.9 * field.coherence + 0.1 * (1.0 - field.depth).clamp(0.0, 1.0);
 
-    // Debug log: cohérence stabilisée après intégration
-    println!(
-        "🔄 [reflection] intégration → cohérence stabilisée à {:.3}",
-        field.coherence
+    debug!(
+        target: "reflection",
+        coherence = field.coherence,
+        "intégration stabilisée"
     );
 
-    memory.record(
-        field.coherence,
-        1.0 - field.coherence, // entropie approximée
-        field.depth,           // énergie approximée
-    );
+    memory.record(json!({
+        "module": "reflection",
+        "coherence": field.coherence,
+        "entropy": (1.0 - field.coherence).clamp(0.0, 1.0),
+        "energy": field.depth,
+    }));
 }
 
 /// Simule une boucle de rétro-causalité, où l’état futur influence le présent.
@@ -89,10 +94,10 @@ fn recursion(mut field: ResMut<ReflectionField>, time: Res<Time>) {
     // Ajuste la profondeur en fonction du feedback, en la clampant entre 0 et 1
     field.depth = (field.depth + feedback * 0.05).clamp(0.0, 1.0);
 
-    // Debug log: suivi de l'intensité du feedback récursif
-    println!(
-        "♾️ [reflection] rétro-causalité active → profondeur={:.3}",
-        field.depth
+    debug!(
+        target: "reflection",
+        depth = field.depth,
+        "rétro-causalité active"
     );
 }
 
@@ -102,19 +107,28 @@ fn recursion(mut field: ResMut<ReflectionField>, time: Res<Time>) {
 
 /// Initialise le module `reflection` et enregistre ses ressources et composants.
 pub fn init(app: &mut App) {
-    println!("🔧 [reflection] initialisation du champ de réflexion...");
+    info!(target: "reflection", "initialisation du champ de réflexion");
 
     app.insert_resource(ReflectionField::default())
         .register_type::<Perception>()
         .register_type::<ReflectionField>()
         .add_systems(Update, (perceive, integrate, recursion));
 
-    println!("✅ [reflection] systèmes réflexifs opérationnels.");
-    println!("🧠 [reflection] module prêt — introspection active et cohérente.");
-    println!("🪶 [reflection] module finalisé — conscience interne stabilisée.");
+    info!(target: "reflection", "systèmes réflexifs opérationnels");
+    debug!(
+        target: "reflection",
+        "module prêt — introspection active et cohérente"
+    );
+    debug!(
+        target: "reflection",
+        "module finalisé — conscience interne stabilisée"
+    );
 }
 
 /// Fonction de debug — affiche l’état actuel du champ réflexif.
 pub fn debug_info() {
-    println!("🧩 [reflection] perception et intégration multi-niveaux en cours...");
+    debug!(
+        target: "reflection",
+        "perception et intégration multi-niveaux en cours"
+    );
 }

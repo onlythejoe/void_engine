@@ -17,8 +17,13 @@
 // il traduit les dynamiques internes en signaux observables et capte les stimuli externes pour les
 // réinjecter dans les couches inférieures du moteur.
 
+use crate::core::MemoryField;
 use bevy::prelude::*;
 use bevy::reflect::Reflect;
+use tracing::{debug, info};
+
+#[derive(Component)]
+struct InterfaceDiagnostic;
 
 /// Composant représentant une entrée externe (capteur, signal, événement utilisateur...).
 #[derive(Reflect, Component, Default, Debug)]
@@ -63,9 +68,12 @@ fn receive_inputs(mut query: Query<&mut InputSignal>, mut link: ResMut<Interface
         link.transmission_rate = (input.intensity / 10.0).clamp(0.0, 1.0);
 
         // Log de réception des signaux entrants
-        println!(
-            "📡 [interface] réception — canal '{}' intensité {:.2} → taux transmission {:.2}",
-            input.channel, input.intensity, link.transmission_rate
+        debug!(
+            target: "interface",
+            channel = %input.channel,
+            intensity = input.intensity,
+            transmission = link.transmission_rate,
+            "réception signal"
         );
     }
 }
@@ -80,9 +88,11 @@ fn emit_outputs(mut query: Query<&mut OutputProjection>, link: Res<InterfaceLink
         output.amplitude *= link.transmission_rate;
 
         // Log d'émission des projections externes
-        println!(
-            "💡 [interface] émission — cible '{}' amplitude {:.2}",
-            output.target, output.amplitude
+        debug!(
+            target: "interface",
+            target = %output.target,
+            amplitude = output.amplitude,
+            "émission signal"
         );
     }
 }
@@ -96,12 +106,48 @@ fn sync_links(mut link: ResMut<InterfaceLink>) {
         link.connected_voids.push("PrimaryVoid".into());
 
         // Log de création de connexion initiale
-        println!("🌐 [interface] connexion établie avec PrimaryVoid");
+        info!(target: "interface", "connexion établie avec PrimaryVoid");
     } else {
         // Log d'état des connexions existantes
-        println!(
-            "🌐 [interface] liens actifs : {:?} | taux {:.2}",
-            link.connected_voids, link.transmission_rate
+        debug!(
+            target: "interface",
+            links = ?link.connected_voids,
+            rate = link.transmission_rate,
+            "liens actifs"
+        );
+    }
+}
+
+fn setup_visualization(mut commands: Commands) {
+    commands.spawn(Camera2dBundle::default());
+
+    commands.spawn((
+        SpriteBundle {
+            sprite: Sprite {
+                color: Color::rgb(0.2, 0.2, 0.8),
+                custom_size: Some(Vec2::splat(220.0)),
+                ..Default::default()
+            },
+            transform: Transform::from_xyz(0.0, 0.0, 0.0),
+            ..Default::default()
+        },
+        InterfaceDiagnostic,
+    ));
+}
+
+fn update_visualization(
+    memory: Res<MemoryField>,
+    mut query: Query<&mut Sprite, With<InterfaceDiagnostic>>,
+) {
+    if let Ok(mut sprite) = query.get_single_mut() {
+        let coherence = memory.average("coherence", 60).unwrap_or(0.5);
+        let entropy = memory.average("entropy", 60).unwrap_or(0.5);
+        let intensity = (1.0 - entropy).clamp(0.0, 1.0);
+
+        sprite.color = Color::rgb(
+            coherence.clamp(0.0, 1.0),
+            intensity,
+            (1.0 - coherence).clamp(0.0, 1.0),
         );
     }
 }
@@ -111,26 +157,41 @@ fn sync_links(mut link: ResMut<InterfaceLink>) {
 /// Configure les ressources, enregistre les types et ajoute les systèmes nécessaires.
 pub fn init(app: &mut App) {
     // Log de démarrage de l'initialisation
-    println!("🔧 [interface] initialisation de la couche de projection...");
+    info!(target: "interface", "initialisation de la couche de projection");
 
     app.insert_resource(InterfaceLink::default())
         .register_type::<InputSignal>()
         .register_type::<OutputProjection>()
         .register_type::<InterfaceLink>()
-        .add_systems(Update, (receive_inputs, emit_outputs, sync_links));
+        .add_systems(Startup, setup_visualization)
+        .add_systems(
+            Update,
+            (
+                receive_inputs,
+                emit_outputs,
+                sync_links,
+                update_visualization,
+            ),
+        );
 
     // Log de confirmation de mise en ligne
-    println!("✅ [interface] système d’interconnexion en ligne.");
+    info!(target: "interface", "système d’interconnexion en ligne");
 
     // Log final de synthèse de l'initialisation
-    println!("🧠 [interface] module prêt — communication et visualisation synchronisées.");
+    debug!(
+        target: "interface",
+        "module prêt — communication et visualisation synchronisées"
+    );
 
     // Log final de la phase d'initialisation
-    println!("🪞 [interface] module finalisé — interconnexion fluide établie.");
+    debug!(
+        target: "interface",
+        "module finalisé — interconnexion fluide établie"
+    );
 }
 
 /// Fonction de debug — affiche l’état ou la progression du module.
 pub fn debug_info() {
     // Log d'information sur l'état du module
-    println!("🧩 [interface] communication et projection actives...");
+    debug!(target: "interface", "communication et projection actives");
 }

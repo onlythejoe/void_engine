@@ -9,6 +9,7 @@
 
 use bevy::prelude::*;
 use std::f32::consts::PI;
+use tracing::{debug, info};
 
 /// Composant représentant la vélocité d'une entité (en unités/s).
 #[derive(Component, Default, Debug, Reflect)]
@@ -48,9 +49,11 @@ pub fn apply_forces(mut query: Query<(&mut Velocity, &Force, &Mass)>, time: Res<
         let acceleration = force.vector() / mass.value.max(1e-6);
         // Intégration de l'accélération dans la vitesse linéaire (changement de vitesse)
         velocity.linear += acceleration * time.delta_secs();
-        println!(
-            "⚙️ [dynamics] accélération appliquée : {:?} → vitesse = {:?}",
-            acceleration, velocity.linear
+        debug!(
+            target: "dynamics",
+            ?acceleration,
+            linear = ?velocity.linear,
+            "accélération appliquée"
         );
     }
 }
@@ -69,18 +72,24 @@ pub fn integrate_positions(mut query: Query<(&mut Transform, &Velocity)>, time: 
 
 /// Initialise le module `dynamics` — enregistre les composants et systèmes physiques.
 pub fn init(app: &mut App) {
-    println!("🔧 [dynamics] initialisation des systèmes physiques...");
+    info!(target: "dynamics", "initialisation des systèmes physiques");
 
     app.register_type::<Velocity>()
         .register_type::<Mass>()
         .register_type::<Force>()
         .add_systems(Update, (apply_forces, integrate_positions));
 
-    println!("✅ [dynamics] systèmes physiques enregistrés et actifs.");
-    println!("🧠 [dynamics] module prêt — dynamique systémique stabilisée.");
+    info!(
+        target: "dynamics",
+        "systèmes physiques enregistrés et actifs"
+    );
+    debug!(
+        target: "dynamics",
+        "module prêt — dynamique systémique stabilisée"
+    );
 }
 
 /// Fonction de debug — affiche un état symbolique du module.
 pub fn debug_info() {
-    println!("🧩 [dynamics] simulation physique en cours d’intégration.");
+    debug!(target: "dynamics", "simulation physique en cours d’intégration");
 }

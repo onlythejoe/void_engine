@@ -2,7 +2,7 @@
 
 ![Build Status](https://img.shields.io/github/actions/workflow/status/onlythejoe/void_engine/ci.yml?branch=main&label=build&style=flat-square)
 ![Version](https://img.shields.io/crates/v/void_engine?style=flat-square)
-![Version](https://img.shields.io/badge/version-v0.2.0-blue?style=flat-square)
+![Version](https://img.shields.io/badge/version-v0.2.1-blue?style=flat-square)
 ![Reflective Systems Ready](https://img.shields.io/badge/feature-Reflective%20Systems%20Ready-brightgreen?style=flat-square)
 
 > *"A self-aware modular simulation engine bridging physical, functional, and reflective layers of computation."*  
@@ -26,7 +26,7 @@ It embodies a *living computational entity* capable of perceiving, reflecting, a
 | 🌐 **interface** | Communication layer  | Manages interaction, I/O, and projection                |
 | 💫 **manifold**  | Unification field    | Harmonizes all layers into a coherent “state of being” |
 
-> **Note:** This version (v0.2.0) introduces the **MemoryField** system within the core layer and enhances reflective feedback loops for improved internal coherence.
+> **Note:** This version (v0.2.1) unifies the **MemoryField** into a single rotating, JSON-driven buffer with analytics and coherent reflection writers. It also finalizes GPU substrate boot via a fully initialized `GpuContext` and introduces a visualization sprite reflecting live coherence and entropy readings.
 
 ---
 
@@ -123,7 +123,8 @@ You should see the full initialization log in your terminal.
 |---------|-------------------------------------------|----------------|
 | v0.1.0  | Core architecture & ECS boot sequence     | ✅ Completed   |
 | v0.2.0  | Dynamic entity graph & reflection feedback loop | ✅ Completed   |
-| v0.2.1  | Parallel async event loop stabilization    | 🛠️ Planned     |
+| v0.2.1  | Unified MemoryField buffer & GPU substrate boot | ✅ Completed   |
+| v0.2.2  | Parallel async event loop stabilization    | 🛠️ In Progress |
 | v0.3.0  | Real-time visual layer (GPU visualization) | 🧠 In Development |
 | v0.4.0  | AI-driven coherence adaptation            | 🪞 Concept     |
 | v1.0.0  | Fully self-regulating synthetic environment | 🚀 Vision     |

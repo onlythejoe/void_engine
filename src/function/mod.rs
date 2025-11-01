@@ -12,8 +12,10 @@
 //! - `Oscillator` : composant reflectable, représentant les entités vibratoires du système.
 //! - Systèmes : `update_oscillators`, `regulate_entropy` (stade Update).
 
+use crate::core::MemoryField;
 use bevy::prelude::*;
 use std::f32::consts::PI;
+use tracing::{debug, info};
 
 /// Resource representing the global feedback loop state.
 /// Tracks entropy, resonance phase, coherence level, and a frame counter for logging.
@@ -28,6 +30,10 @@ pub struct FeedbackLoop {
     pub coherence_level: f32,
     /// Frame counter used for periodic logging.
     pub frame_counter: u32,
+    /// Adaptive decay derived from reflective memory analytics.
+    pub adaptive_decay: f32,
+    /// Adaptive phase rate tuned by entropy trend.
+    pub phase_rate: f32,
 }
 
 /// Component representing a systemic vibratory oscillator.
@@ -76,23 +82,42 @@ fn update_oscillators(
 
     // Log status every 60 frames to reduce console spam.
     if feedback.frame_counter % 60 == 0 {
-        println!(
-            "🔁 [function] update_oscillators | entropy={:.5} coherence={:.4}",
-            feedback.global_entropy, feedback.coherence_level
+        debug!(
+            target: "function",
+            entropy = feedback.global_entropy,
+            coherence = feedback.coherence_level,
+            "update_oscillators"
         );
     }
 }
 
+const BASE_DECAY: f32 = 0.95;
+const BASE_PHASE_RATE: f32 = 0.01;
+
 /// System: decays entropy and advances the global resonance phase.
-fn regulate_entropy(mut feedback: ResMut<FeedbackLoop>) {
-    const DECAY: f32 = 0.95;
-    // Apply exponential decay to global entropy to simulate dissipation.
-    feedback.global_entropy *= DECAY;
-    // Advance resonance phase by a small fixed increment, wrapping around 2π.
-    feedback.resonance_phase = (feedback.resonance_phase + 0.01) % (2.0 * PI);
-    println!(
-        "🌐 [function] regulate_entropy | entropy={:.6} phase={:.2}",
-        feedback.global_entropy, feedback.resonance_phase
+fn regulate_entropy(mut feedback: ResMut<FeedbackLoop>, memory: Res<MemoryField>) {
+    let coherence_avg = memory
+        .average("coherence", 120)
+        .unwrap_or(feedback.coherence_level)
+        .clamp(0.0, 1.0);
+    let entropy_trend = memory.trend("entropy", 120).unwrap_or(0.0);
+
+    let adaptive_decay = (BASE_DECAY * (1.0 - coherence_avg)).clamp(0.7, 0.995);
+    feedback.adaptive_decay = adaptive_decay;
+    feedback.global_entropy *= feedback.adaptive_decay;
+
+    let adaptive_rate = (BASE_PHASE_RATE * (1.0 + entropy_trend)).clamp(0.001, 0.05);
+    feedback.phase_rate = adaptive_rate;
+    feedback.resonance_phase = (feedback.resonance_phase + feedback.phase_rate) % (2.0 * PI);
+
+    debug!(
+        target: "function",
+        entropy = feedback.global_entropy,
+        coherence_avg,
+        entropy_trend,
+        decay = feedback.adaptive_decay,
+        phase_rate = feedback.phase_rate,
+        "regulate_entropy"
     );
 }
 
@@ -103,12 +128,17 @@ pub fn reset_feedback(mut feedback: ResMut<FeedbackLoop>) {
     feedback.resonance_phase = 0.0;
     feedback.coherence_level = 1.0;
     feedback.frame_counter = 0;
-    println!("🔄 [function] reset_feedback | feedback loop state reset to defaults.");
+    feedback.adaptive_decay = BASE_DECAY;
+    feedback.phase_rate = BASE_PHASE_RATE;
+    info!(
+        target: "function",
+        "reset_feedback | feedback loop state reset to defaults"
+    );
 }
 
 /// Initializes the `function` module in Bevy.
 pub fn init(app: &mut App) {
-    println!("🔧 [function] initializing functional feedback loops...");
+    info!(target: "function", "initializing functional feedback loops");
 
     app.insert_resource(FeedbackLoop::default())
         .register_type::<FeedbackLoop>()
@@ -116,11 +146,17 @@ pub fn init(app: &mut App) {
         .add_systems(Update, (update_oscillators, regulate_entropy))
         .add_systems(Startup, reset_feedback);
 
-    println!("✅ [function] functional feedback loops online.");
-    println!("🧠 [function] module prêt — boucles fonctionnelles stabilisées.");
+    info!(target: "function", "functional feedback loops online");
+    debug!(
+        target: "function",
+        "module prêt — boucles fonctionnelles stabilisées"
+    );
 }
 
 /// Debug function — prints a synthetic status message.
 pub fn debug_info() {
-    println!("🧩 [function] feedback loops synchronized and operational.");
+    debug!(
+        target: "function",
+        "feedback loops synchronized and operational"
+    );
 }
