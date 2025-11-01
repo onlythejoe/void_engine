@@ -2,7 +2,8 @@
 
 ![Build Status](https://img.shields.io/github/actions/workflow/status/onlythejoe/void_engine/ci.yml?branch=main&label=build&style=flat-square)
 ![Version](https://img.shields.io/crates/v/void_engine?style=flat-square)
-![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
+![Version](https://img.shields.io/badge/version-v0.2.0-blue?style=flat-square)
+![Reflective Systems Ready](https://img.shields.io/badge/feature-Reflective%20Systems%20Ready-brightgreen?style=flat-square)
 
 > *"A self-aware modular simulation engine bridging physical, functional, and reflective layers of computation."*  
 > — Joey-Néot Marquet
@@ -25,6 +26,8 @@ It embodies a *living computational entity* capable of perceiving, reflecting, a
 | 🌐 **interface** | Communication layer  | Manages interaction, I/O, and projection                |
 | 💫 **manifold**  | Unification field    | Harmonizes all layers into a coherent “state of being” |
 
+> **Note:** This version (v0.2.0) introduces the **MemoryField** system within the core layer and enhances reflective feedback loops for improved internal coherence.
+
 ---
 
 ## 🧠 Philosophy
@@ -40,7 +43,7 @@ It embodies a *living computational entity* capable of perceiving, reflecting, a
 ```
 void_engine/
 ├── src/
-│   ├── core/           → Runtime kernel, Bevy ECS setup
+│   ├── core/           → Runtime kernel, Bevy ECS setup, memory subsystem
 │   ├── substrate/      → GPU and system layer (WGPU)
 │   ├── dynamics/       → Physical interactions and energy flow
 │   ├── structure/      → ECS world, entities, and topology
@@ -75,13 +78,14 @@ When running `cargo run`, the engine initializes all layers sequentially, produc
 🌌 Lancement du Void Engine…
 🚀 [void_engine] Initialisation du moteur Void…
 🔧 [core] module initialisé.
+🧠 [core::memory] MemoryField system active, snapshots captured.
 🎮 [substrate] Initialisation du GPU context…
 ✅ [dynamics] systèmes physiques enregistrés et actifs.
 🧠 [function] boucles fonctionnelles stabilisées.
 🪞 [reflection] conscience interne stabilisée.
 🌐 [interface] interconnexion fluide établie.
 💫 [manifold] Champ unifié opérationnel.
-✅ [void_engine] Toutes les couches sont synchronisées.
+✅ [void_engine] Toutes les couches sont synchronisées et la cohérence est stable.
 ```
 
 Each entry corresponds to an ECS system successfully initialized or executed in real time.
@@ -115,13 +119,14 @@ You should see the full initialization log in your terminal.
 
 ## 🧠 Development Roadmap
 
-| Phase  | Objective                                 | Status        |
-|--------|-------------------------------------------|---------------|
-| v0.1.0 | Core architecture & ECS boot sequence     | ✅ Completed  |
-| v0.2.0 | Dynamic entity graph & reflection feedback loop | 🔄 In progress |
-| v0.3.0 | Real-time visual layer (GPU visualization) | 🧠 Planned   |
-| v0.4.0 | AI-driven coherence adaptation            | 🪞 Concept    |
-| v1.0.0 | Fully self-regulating synthetic environment | 🚀 Vision    |
+| Phase   | Objective                                 | Status         |
+|---------|-------------------------------------------|----------------|
+| v0.1.0  | Core architecture & ECS boot sequence     | ✅ Completed   |
+| v0.2.0  | Dynamic entity graph & reflection feedback loop | ✅ Completed   |
+| v0.2.1  | Parallel async event loop stabilization    | 🛠️ Planned     |
+| v0.3.0  | Real-time visual layer (GPU visualization) | 🧠 In Development |
+| v0.4.0  | AI-driven coherence adaptation            | 🪞 Concept     |
+| v1.0.0  | Fully self-regulating synthetic environment | 🚀 Vision     |
 
 ---
 
@@ -132,6 +137,8 @@ Digital Systems Architect & Creative Technologist
 - GitHub: [@onlythejoe](https://github.com/onlythejoe)  
 - LinkedIn: [linkedin.com/in/joeymarquet](https://www.linkedin.com/in/joeymarquet)  
 - Portfolio: [joemadethis.carrd.co](https://joemadethis.carrd.co)
+
+*Reflective Engine Architecture*
 
 ---
 

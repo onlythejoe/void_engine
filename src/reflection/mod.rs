@@ -10,6 +10,7 @@
 
 use bevy::prelude::*;
 use std::f32::consts::PI;
+use crate::core::MemoryField;
 
 /// Représente une "perception" interne du système — une observation locale d’un état.
 /// Chaque entité `Perception` agit comme un capteur introspectif du moteur.
@@ -63,7 +64,7 @@ fn perceive(query: Query<&Perception>, mut field: ResMut<ReflectionField>, time:
 
 /// Fusionne la perception avec les couches inférieures (dynamics, function)
 /// pour maintenir une stabilité systémique du champ réflexif.
-fn integrate(mut field: ResMut<ReflectionField>) {
+fn integrate(mut field: ResMut<ReflectionField>, mut memory: ResMut<MemoryField>) {
     // Intègre et stabilise la cohérence du champ réflexif en pondérant l'ancienne valeur et une fonction de la profondeur
     field.coherence = 0.9 * field.coherence + 0.1 * (1.0 - field.depth).clamp(0.0, 1.0);
 
@@ -71,6 +72,12 @@ fn integrate(mut field: ResMut<ReflectionField>) {
     println!(
         "🔄 [reflection] intégration → cohérence stabilisée à {:.3}",
         field.coherence
+    );
+
+    memory.record(
+        field.coherence,
+        1.0 - field.coherence, // entropie approximée
+        field.depth,           // énergie approximée
     );
 }
 

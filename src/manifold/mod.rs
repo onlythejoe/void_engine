@@ -13,6 +13,7 @@
 use bevy::prelude::*;
 use bevy::time::TimePlugin;
 use crate::{reflection::*, interface::*};
+use crate::core::MemoryField;
 
 /// Représente le champ unifié du Void — convergence de toutes les sous-couches.
 #[derive(Resource, Default, Debug, Reflect)]
@@ -29,6 +30,7 @@ fn unify_field(
     mut field: ResMut<VoidField>,
     reflection: Res<ReflectionField>,
     interface: Res<InterfaceLink>,
+    mut memory: ResMut<MemoryField>,
 ) {
     // Calcule et met à jour les propriétés du champ unifié en fonction des sous-couches.
     // Log the current state of the unified field for monitoring energy flow and coherence.
@@ -36,6 +38,12 @@ fn unify_field(
     field.coherence = (field.energy_flow * 0.8 + (1.0 - reflection.depth) * 0.2).clamp(0.0, 1.0);
     field.entropy = 1.0 - field.coherence;
     field.active_layers = 6;
+
+    memory.record(
+        field.coherence,
+        field.entropy,
+        field.energy_flow,
+    );
 
     // Monitoring unified field state
     println!(

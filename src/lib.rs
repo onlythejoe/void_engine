@@ -44,7 +44,7 @@ impl VoidEngine {
         let mut app = App::new();
 
         // 🧱 Phase 1 : couches fondamentales
-        core::init();
+        core::init(&mut app);
         substrate::init(&mut app);
 
         // ⚙️ Phase 2 : couches dynamiques et structurelles
@@ -56,6 +56,8 @@ impl VoidEngine {
         reflection::init(&mut app);
         interface::init(&mut app);
         manifold::init(&mut app);
+
+        app.insert_resource(core::MemoryField::new(512)); // mémoire circulaire de 512 trames
 
         println!("✅ [void_engine] Toutes les couches du moteur sont opérationnelles !");
         app
